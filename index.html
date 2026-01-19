@@ -1,0 +1,444 @@
+import React, { useState, useEffect } from 'react';
+import { Search, Plus, Book, User, Trash2, CheckCircle, Clock, X, Save, Download, Star, MessageSquare, List, Info, ChevronRight, Settings, Lock, LogOut, ArrowLeft, Eye, FileText, Loader2 } from 'lucide-react';
+
+const App = () => {
+  const STORAGE_KEY = "our_trees_library_final_v1";
+  const REQUEST_STORAGE_KEY = "our_trees_library_requests_final";
+
+  // Logos Configuration
+  const SPLASH_LOGO_URL = "https://raw.githubusercontent.com/Khunnaingpyaehtun/librarysystem/main/signal-2026-01-17-81018_PM.PNG";
+  const HEADER_LOGO_URL = "https://raw.githubusercontent.com/Khunnaingpyaehtun/librarysystem/main/Our_Trees_Education_Foundation_rgb-02.JPG";
+
+  const colors = {
+    primary: "#DB8C29",
+    secondary: "#BFC8A1",
+    bgLight: "#F1F4EE",
+    shelfWood: "#8B4513",
+    dark: "#2D3436"
+  };
+
+  const ddcCategories = [
+    { code: "000", label: "အထွေထွေဗဟုသုတ", icon: "📚", color: "#4A90E2" },
+    { code: "100", label: "စိတ်ပညာနှင့် ဒဿန", icon: "🧠", color: "#9B59B6" },
+    { code: "200", label: "ဘာသာရေး", icon: "🙏", color: "#F1C40F" },
+    { code: "300", label: "လူမှုရေးသိပ္ပံ", icon: "👥", color: "#E67E22" },
+    { code: "400", label: "ဘာသာစကား", icon: "🗣️", color: "#1ABC9C" },
+    { code: "500", label: "သဘာဝသိပ္ပံ", icon: "🔬", color: "#2ECC71" },
+    { code: "600", label: "နည်းပညာ", icon: "🛠️", color: "#34495E" },
+    { code: "700", label: "အနုပညာ", icon: "🎨", color: "#E74C3C" },
+    { code: "800", label: "စာပေ", icon: "✍️", color: "#DB8C29" },
+    { code: "900", label: "သမိုင်းနှင့် ပထဝီ", icon: "🗺️", color: "#7F8C8D" }
+  ];
+
+  const sampleBooks = [
+    { id: 1, title: "နည်းပညာ ခေတ်ဦး", author: "ဦးကျော်စွာ", ddc: "000", isFeatured: true, status: "ရရှိနိုင်သည်", year: "၂၀၂၃", coverUrl: "", pdfUrl: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf" },
+    { id: 2, title: "စိတ်ဓာတ် ခွန်အား", author: "ဒေါက်တာတင်ထွန်း", ddc: "100", isFeatured: false, status: "ရရှိနိုင်သည်", year: "၂၀၁၅", coverUrl: "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=400&q=80", pdfUrl: "" },
+    { id: 3, title: "ဓမ္မရသ", author: "ဆရာတော် ဦးဝိစိတ္တ", ddc: "200", isFeatured: true, status: "ရရှိနိုင်သည်", year: "၂၀၁၀", coverUrl: "", pdfUrl: "" },
+    { id: 4, title: "လူမှုဘဝ နိဒါန်း", author: "ဦးအောင်ကို", ddc: "300", isFeatured: false, status: "ရရှိနိုင်သည်", year: "၂၀၂၁", coverUrl: "https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&w=400&q=80", pdfUrl: "" },
+    { id: 5, title: "အခြေခံ အင်္ဂလိပ်သဒ္ဒါ", author: "မြန်မာစာအဖွဲ့", ddc: "400", isFeatured: false, status: "ရရှိနိုင်သည်", year: "၁၉၉၉", coverUrl: "", pdfUrl: "" },
+    { id: 6, title: "ရူပဗေဒ အခြေခံများ", author: "ဒေါက်တာလှ", ddc: "500", isFeatured: true, status: "ရရှိနိုင်သည်", year: "၂၀၁၈", coverUrl: "https://images.unsplash.com/photo-1532012197267-da84d127e765?auto=format&fit=crop&w=400&q=80", pdfUrl: "" },
+    { id: 7, title: "စိုက်ပျိုးရေးနှင့် စီးပွား", author: "ဦးမင်းခန့်", ddc: "600", isFeatured: false, status: "ရရှိနိုင်သည်", year: "၂၀၂၂", coverUrl: "", pdfUrl: "" },
+    { id: 8, title: "မြန်မာ့ ပန်းချီ အနုပညာ", author: "ဦးမောင်", ddc: "700", isFeatured: false, status: "ရရှိနိုင်သည်", year: "၁၉၈၅", coverUrl: "https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?auto=format&fit=crop&w=400&q=80", pdfUrl: "" },
+    { id: 9, title: "မင်းသုဝဏ်၏ ကဗျာများ", author: "မင်းသုဝဏ်", ddc: "800", isFeatured: true, status: "ရရှိနိုင်သည်", year: "၁၉၇၅", coverUrl: "", pdfUrl: "" },
+    { id: 10, title: "ကမ္ဘာ့သမိုင်း အကျဉ်း", author: "ဦးဘသန်း", ddc: "900", isFeatured: true, status: "ရရှိနိုင်သည်", year: "၁၉၆၀", coverUrl: "https://images.unsplash.com/photo-1447069387593-a5de0862481e?auto=format&fit=crop&w=400&q=80", pdfUrl: "" }
+  ];
+
+  // States
+  const [showSplash, setShowSplash] = useState(true);
+  const [books, setBooks] = useState([]);
+  const [requests, setRequests] = useState([]);
+  const [isLoaded, setIsLoaded] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [activeTab, setActiveTab] = useState("home"); 
+  const [selectedDDC, setSelectedDDC] = useState("All");
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const [loginForm, setLoginForm] = useState({ username: "", password: "" });
+  const [loginError, setLoginError] = useState("");
+  const [viewingBook, setViewingBook] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isRequestModalOpen, setIsRequestModalOpen] = useState(false);
+  const [newBook, setNewBook] = useState({ title: "", author: "", ddc: "000", isFeatured: false, year: "", coverUrl: "", pdfUrl: "" });
+  const [newRequest, setNewRequest] = useState({ title: "", author: "", requester: "" });
+  const [showNotification, setShowNotification] = useState(null);
+
+  useEffect(() => {
+    const splashTimer = setTimeout(() => {
+      setShowSplash(false);
+    }, 2800); 
+    return () => clearTimeout(splashTimer);
+  }, []);
+
+  useEffect(() => {
+    const savedBooks = localStorage.getItem(STORAGE_KEY);
+    const savedRequests = localStorage.getItem(REQUEST_STORAGE_KEY);
+    if (savedBooks && JSON.parse(savedBooks).length > 0) {
+      setBooks(JSON.parse(savedBooks));
+    } else {
+      setBooks(sampleBooks);
+    }
+    if (savedRequests) setRequests(JSON.parse(savedRequests));
+    setIsLoaded(true);
+  }, []);
+
+  useEffect(() => {
+    if (isLoaded) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(books));
+      localStorage.setItem(REQUEST_STORAGE_KEY, JSON.stringify(requests));
+    }
+  }, [books, requests, isLoaded]);
+
+  const notify = (msg) => {
+    setShowNotification(msg);
+    setTimeout(() => setShowNotification(null), 3000);
+  };
+
+  const filteredBooks = books.filter(book => {
+    const matchesSearch = book.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                         book.author.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesDDC = selectedDDC === "All" || book.ddc === selectedDDC;
+    return matchesSearch && matchesDDC;
+  });
+
+  const handleLogin = (e) => {
+    e.preventDefault();
+    if (loginForm.username === "admin" && loginForm.password === "ourtrees123") {
+      setIsAdmin(true);
+      setShowLoginModal(false);
+      setLoginForm({ username: "", password: "" });
+      setLoginError("");
+      notify("Admin Mode သို့ ဝင်ရောက်ပြီးပါပြီ");
+    } else {
+      setLoginError("အသုံးပြုသူအမည် သို့မဟုတ် လျှို့ဝှက်နံပါတ် မှားယွင်းနေပါသည်။");
+    }
+  };
+
+  const handleLogout = () => {
+    setIsAdmin(false);
+    notify("Admin Mode မှ ထွက်လိုက်ပါပြီ");
+  };
+
+  const handleAddBook = (e) => {
+    e.preventDefault();
+    setBooks(prev => [...prev, { ...newBook, id: Date.now(), status: "ရရှိနိုင်သည်" }]);
+    setIsModalOpen(false);
+    setNewBook({ title: "", author: "", ddc: "000", isFeatured: false, year: "", coverUrl: "", pdfUrl: "" });
+    notify("စာအုပ်အသစ် ထည့်သွင်းပြီးပါပြီ");
+  };
+
+  const handleAddRequest = (e) => {
+    e.preventDefault();
+    setRequests(prev => [...prev, { ...newRequest, id: Date.now(), date: new Date().toLocaleDateString() }]);
+    setIsRequestModalOpen(false);
+    setNewRequest({ title: "", author: "", requester: "" });
+    notify("စာအုပ်တောင်းဆိုမှုကို လက်ခံရရှိပါပြီ");
+  };
+
+  const getBookCoverColor = (ddc) => {
+    const category = ddcCategories.find(c => c.code === ddc);
+    return category ? category.color : colors.primary;
+  };
+
+  const BookItem = ({ book }) => (
+    <div className="flex flex-col items-center group">
+      <div 
+        onClick={() => setViewingBook(book)}
+        className="relative w-32 h-44 sm:w-40 sm:h-56 rounded-r-lg shadow-xl transition-all duration-300 transform group-hover:scale-105 group-hover:shadow-2xl overflow-hidden cursor-pointer"
+        style={{ backgroundColor: book.coverUrl ? 'white' : getBookCoverColor(book.ddc) }}
+      >
+        {!book.coverUrl && <div className="absolute left-0 top-0 bottom-0 w-3 bg-black/10 z-10"></div>}
+        {book.coverUrl ? (
+          <img src={book.coverUrl} alt={book.title} className="w-full h-full object-cover" />
+        ) : (
+          <div className="p-3 h-full flex flex-col justify-between text-white relative z-0">
+            <div className="flex justify-between items-start">
+              <span className="text-[8px] font-black bg-white/20 px-1 rounded uppercase tracking-tighter">DDC {book.ddc}</span>
+              {book.isFeatured && <Star size={10} className="fill-white" />}
+            </div>
+            <div className="my-auto">
+              <h4 className="text-[11px] sm:text-xs font-black leading-tight line-clamp-4 text-center border-y border-white/30 py-2">
+                {book.title}
+              </h4>
+            </div>
+            <div className="text-center">
+              <p className="text-[9px] font-medium opacity-80 truncate">{book.author}</p>
+            </div>
+          </div>
+        )}
+        <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-tr from-transparent via-white/5 to-white/10 pointer-events-none"></div>
+      </div>
+      <div className="mt-3 text-center px-2">
+        <h5 className="text-[11px] font-black text-slate-800 line-clamp-1 w-32 sm:w-40">{book.title}</h5>
+        <div className="flex items-center justify-center gap-1 mt-1 text-[9px] font-bold text-slate-400">
+          <span className={`w-1.5 h-1.5 rounded-full ${book.status === "ရရှိနိုင်သည်" ? "bg-emerald-500" : "bg-red-500"}`}></span>
+          {book.status}
+        </div>
+      </div>
+      {isAdmin && (
+        <button onClick={(e) => { e.stopPropagation(); setBooks(prev => prev.filter(b => b.id !== book.id)) }} className="mt-2 p-1.5 bg-red-50 text-red-400 rounded-full hover:bg-red-100 transition-colors">
+          <Trash2 size={12} />
+        </button>
+      )}
+    </div>
+  );
+
+  // --- SPLASH SCREEN (INTRO) ---
+  if (showSplash) {
+    return (
+      <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-white transition-all duration-1000 overflow-hidden">
+        <div className="relative animate-in zoom-in fade-in duration-700 ease-out mb-10">
+           {/* Splash Logo - Previous Signal Logo with increased size and smooth style */}
+           <img 
+            src={SPLASH_LOGO_URL} 
+            alt="Intro Logo" 
+            className="w-72 h-72 object-contain animate-pulse-slow" 
+            style={{ filter: "drop-shadow(0 15px 30px rgba(219, 140, 41, 0.25))" }}
+            onError={(e) => { e.target.src = "https://lucide.dev/api/icons/book"; }}
+           />
+        </div>
+        <h1 className="text-6xl font-black italic text-[#DB8C29] tracking-tighter mb-4 animate-in slide-in-from-bottom-5 duration-1000 delay-300">Our Trees</h1>
+        <div className="flex items-center gap-3 text-slate-300 font-bold text-sm uppercase tracking-[0.4em] opacity-80 mt-2">
+           <Loader2 className="animate-spin" size={18} /> Loading System
+        </div>
+
+        <style>{`
+          @keyframes pulse-slow {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.05); opacity: 0.85; }
+          }
+          .animate-pulse-slow {
+            animation: pulse-slow 3s ease-in-out infinite;
+          }
+        `}</style>
+      </div>
+    );
+  }
+
+  // --- READER VIEW ---
+  if (viewingBook) {
+    return (
+      <div className="min-h-screen bg-slate-100 p-4 md:p-10 font-sans">
+        <div className="max-w-6xl mx-auto">
+          <button onClick={() => setViewingBook(null)} className="flex items-center gap-2 text-slate-500 font-bold mb-8 hover:text-indigo-600 transition-colors">
+            <ArrowLeft size={18} /> နောက်သို့ပြန်သွားမည်
+          </button>
+          <div className="bg-white rounded-[40px] shadow-2xl overflow-hidden flex flex-col lg:flex-row min-h-[600px] animate-in fade-in zoom-in duration-500">
+             <div className="lg:w-1/3 bg-slate-50 p-10 flex flex-col items-center border-r border-slate-100">
+                <div className="w-48 h-64 rounded-2xl shadow-2xl overflow-hidden mb-8" style={!viewingBook.coverUrl ? { backgroundColor: getBookCoverColor(viewingBook.ddc) } : {}}>
+                   {viewingBook.coverUrl ? <img src={viewingBook.coverUrl} className="w-full h-full object-cover" /> : <div className="h-full flex items-center justify-center text-white"><Book size={64} className="opacity-30" /></div>}
+                </div>
+                <h2 className="text-2xl font-black text-slate-800 text-center mb-1">{viewingBook.title}</h2>
+                <p className="text-slate-400 font-bold italic mb-8">{viewingBook.author}</p>
+                <div className="w-full space-y-3">
+                   <div className="p-4 bg-white rounded-2xl flex justify-between items-center text-xs font-bold"><span className="text-slate-400">CATEGORY</span><span className="text-indigo-600">DDC {viewingBook.ddc}</span></div>
+                   <div className="p-4 bg-white rounded-2xl flex justify-between items-center text-xs font-bold"><span className="text-slate-400">STATUS</span><span className="text-emerald-500 uppercase">{viewingBook.status}</span></div>
+                </div>
+             </div>
+             <div className="lg:w-2/3 bg-slate-900 p-4 flex flex-col">
+                {viewingBook.pdfUrl ? (
+                  <iframe src={viewingBook.pdfUrl} className="w-full h-full rounded-3xl bg-white" title="Reader"></iframe>
+                ) : (
+                  <div className="m-auto text-center text-white opacity-50 space-y-4">
+                     <FileText size={80} className="mx-auto" />
+                     <p className="font-bold">PDF ဖတ်ရှုရန် ဖိုင်တင်ထားခြင်း မရှိသေးပါ</p>
+                  </div>
+                )}
+             </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen font-sans text-slate-800 pb-24 animate-in fade-in duration-1000" style={{ backgroundColor: colors.bgLight }}>
+      
+      {/* Header */}
+      <header className="sticky top-0 z-40 shadow-md" style={{ backgroundColor: colors.primary }}>
+        <div className="max-w-6xl mx-auto px-4 h-24 flex items-center justify-between text-white">
+          <div onClick={() => setActiveTab("home")} className="flex items-center gap-5 cursor-pointer group">
+            {/* Header Logo - New Foundation Logo with Large Size */}
+            <div className="bg-white/10 p-1.5 rounded-2xl overflow-hidden flex items-center justify-center w-20 h-20 group-hover:bg-white/20 transition-all duration-300">
+               <img src={HEADER_LOGO_URL} alt="Header Logo" className="w-full h-full object-contain filter drop-shadow-lg" onError={(e) => { e.target.src = "https://lucide.dev/api/icons/book"; }} />
+            </div>
+            <h1 className="text-3xl font-black tracking-tight italic">Our Trees</h1>
+          </div>
+          <div className="flex items-center gap-2">
+            {isAdmin ? (
+              <button onClick={handleLogout} className="flex items-center gap-1.5 bg-white/20 hover:bg-white/30 px-5 py-2.5 rounded-full text-xs font-bold transition-all"><LogOut size={14} /> ထွက်ရန်</button>
+            ) : (
+              <button onClick={() => setShowLoginModal(true)} className="p-3 rounded-full hover:bg-white/10 transition-colors"><Settings size={22} /></button>
+            )}
+          </div>
+        </div>
+      </header>
+
+      <main className="max-w-6xl mx-auto px-4 pt-8">
+        {/* Search */}
+        <div className="relative mb-10 max-w-2xl mx-auto">
+          <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
+          <input 
+            type="text"
+            placeholder="စာအုပ်အမည်၊ စာရေးဆရာဖြင့် ရှာဖွေပါ..."
+            className="w-full pl-16 pr-6 py-5 rounded-[40px] border-none shadow-xl focus:ring-4 outline-none text-base font-bold bg-white"
+            style={{ ringColor: colors.primary + '30' }}
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
+
+        {/* Navigation Tabs */}
+        {!searchTerm && (
+          <div className="flex justify-center gap-2 mb-12 overflow-x-auto no-scrollbar py-2">
+            {["home", "browse", "requests"].map((tab) => (
+              <button 
+                key={tab}
+                onClick={() => {setActiveTab(tab); setSelectedDDC("All")}}
+                className={`px-12 py-3.5 rounded-full text-[11px] font-black transition-all uppercase tracking-widest whitespace-nowrap ${activeTab === tab ? "text-white shadow-xl shadow-orange-200" : "bg-white text-slate-400"}`}
+                style={activeTab === tab ? { backgroundColor: colors.primary } : {}}
+              >
+                {tab === "home" ? "ပင်မ" : tab === "browse" ? "စာအုပ်စင်" : "တောင်းဆိုချက်"}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* Content View */}
+        {(activeTab === "home" || activeTab === "browse" || activeTab === "list" || searchTerm !== "") && (
+          <div className="space-y-16 animate-in slide-in-from-bottom-5 duration-700">
+             
+             {/* Category Grid in Browse Tab */}
+             {activeTab === "browse" && !searchTerm && (
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-6">
+                  {ddcCategories.map(cat => (
+                    <button key={cat.code} onClick={() => { setSelectedDDC(cat.code); setActiveTab("list"); }} className="bg-white p-8 rounded-[40px] shadow-sm hover:shadow-2xl transition-all border-b-8 flex flex-col items-center gap-3 active:scale-95" style={{ borderBottomColor: cat.color }}>
+                      <span className="text-4xl mb-2">{cat.icon}</span>
+                      <div className="text-center font-black">
+                         <div className="text-[10px] text-slate-300 uppercase">{cat.code}</div>
+                         <div className="text-xs text-slate-700">{cat.label}</div>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+             )}
+
+             {/* Shelf Display */}
+             {(activeTab === "home" || activeTab === "list" || searchTerm !== "") && (
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-y-16 gap-x-4 pb-20">
+                  {filteredBooks.length > 0 ? (
+                    filteredBooks.map(book => <BookItem key={book.id} book={book} />)
+                  ) : (
+                    <div className="col-span-full py-20 text-center text-slate-400 font-bold uppercase tracking-widest opacity-50">
+                       စာအုပ်များ မရှိသေးပါ
+                    </div>
+                  )}
+                </div>
+             )}
+          </div>
+        )}
+
+        {/* Requests View */}
+        {activeTab === "requests" && (
+          <div className="max-w-2xl mx-auto space-y-6">
+             <div className="bg-white p-10 rounded-[50px] shadow-sm border border-slate-100 text-center">
+                <MessageSquare size={40} className="mx-auto mb-6 text-orange-500 opacity-20" />
+                <h3 className="text-xl font-black text-slate-800 mb-4">စာအုပ်အသစ် တောင်းဆိုခြင်း</h3>
+                <button onClick={() => setIsRequestModalOpen(true)} className="w-full py-5 rounded-3xl font-black text-white shadow-xl hover:scale-[1.02] transition-transform active:scale-95" style={{ backgroundColor: colors.primary }}>စာအုပ်အမည် ပေးပို့မည်</button>
+             </div>
+             {requests.map(req => (
+               <div key={req.id} className="bg-white p-6 rounded-[30px] shadow-sm border-l-8 animate-in fade-in" style={{ borderLeftColor: colors.primary }}>
+                 <div className="font-bold text-slate-700 text-lg">{req.title}</div>
+                 <div className="text-slate-500 text-sm font-bold mt-1">စာရေးဆရာ - {req.author}</div>
+                 <div className="text-[10px] text-slate-400 mt-3 font-black uppercase tracking-tight italic tracking-widest opacity-60">တောင်းဆိုသူ: {req.requester} • {req.date}</div>
+               </div>
+             ))}
+          </div>
+        )}
+      </main>
+
+      {/* Admin FAB */}
+      {isAdmin && (
+        <button onClick={() => setIsModalOpen(true)} className="fixed bottom-10 right-8 w-16 h-16 rounded-[28px] text-white shadow-2xl flex items-center justify-center hover:scale-110 active:scale-90 transition-all z-50" style={{ backgroundColor: colors.primary }}>
+          <Plus size={32} />
+        </button>
+      )}
+
+      {/* --- MODALS --- */}
+      
+      {/* Login */}
+      {showLoginModal && (
+        <div className="fixed inset-0 bg-slate-900/90 backdrop-blur-xl z-[60] flex items-center justify-center p-4">
+          <div className="bg-white w-full max-sm:max-w-full max-w-sm rounded-[50px] shadow-2xl overflow-hidden animate-in zoom-in duration-300">
+            <div className="p-12 text-center bg-slate-50">
+              <Lock size={40} className="mx-auto mb-6 text-indigo-600 opacity-20" />
+              <h2 className="text-2xl font-black text-slate-800">Admin Login</h2>
+            </div>
+            <form onSubmit={handleLogin} className="p-12 space-y-5">
+              {loginError && <p className="text-[10px] font-black text-red-500 text-center bg-red-50 p-3 rounded-2xl">{loginError}</p>}
+              <input type="text" placeholder="Admin ID" required className="w-full px-6 py-5 rounded-3xl bg-slate-100 font-bold text-sm outline-none focus:ring-4" style={{ ringColor: colors.primary + '20' }} value={loginForm.username} onChange={e => setLoginForm({...loginForm, username: e.target.value})} />
+              <input type="password" placeholder="Password" required className="w-full px-6 py-5 rounded-3xl bg-slate-100 font-bold text-sm outline-none focus:ring-4" style={{ ringColor: colors.primary + '20' }} value={loginForm.password} onChange={e => setLoginForm({...loginForm, password: e.target.value})} />
+              <button type="submit" className="w-full py-5 rounded-3xl text-white font-black text-sm shadow-xl mt-4 active:scale-95 transition-all" style={{ backgroundColor: colors.primary }}>LOGIN</button>
+              <button type="button" onClick={() => setShowLoginModal(false)} className="w-full py-2 text-slate-300 text-[10px] font-black uppercase">Close</button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Add Book */}
+      {isModalOpen && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white w-full max-md:max-w-full max-w-md rounded-[50px] shadow-2xl p-10 animate-in zoom-in overflow-y-auto max-h-[90vh]">
+            <h2 className="text-2xl font-black mb-8">စာအုပ်အသစ်ထည့်ရန်</h2>
+            <form onSubmit={handleAddBook} className="space-y-4">
+              <input required placeholder="စာအုပ်အမည်" className="w-full px-6 py-4 rounded-2xl bg-slate-100 font-bold text-sm border-none outline-none" value={newBook.title} onChange={e => setNewBook({...newBook, title: e.target.value})} />
+              <input required placeholder="စာရေးဆရာ" className="w-full px-6 py-4 rounded-2xl bg-slate-100 font-bold text-sm border-none outline-none" value={newBook.author} onChange={e => setNewBook({...newBook, author: e.target.value})} />
+              <select className="w-full px-6 py-4 rounded-2xl bg-slate-100 font-bold text-sm border-none outline-none" value={newBook.ddc} onChange={e => setNewBook({...newBook, ddc: e.target.value})}>
+                {ddcCategories.map(cat => <option key={cat.code} value={cat.code}>{cat.code} - {cat.label}</option>)}
+              </select>
+              <input placeholder="Cover Image URL (ရှိလျှင်)" className="w-full px-6 py-4 rounded-2xl bg-slate-100 font-bold text-sm border-none outline-none" value={newBook.coverUrl} onChange={e => setNewBook({...newBook, coverUrl: e.target.value})} />
+              <input placeholder="PDF File Link (ရှိလျှင်)" className="w-full px-6 py-4 rounded-2xl bg-slate-100 font-bold text-sm border-none outline-none" value={newBook.pdfUrl} onChange={e => setNewBook({...newBook, pdfUrl: e.target.value})} />
+              <div className="flex items-center gap-2 p-3 text-xs font-bold text-slate-500"><input type="checkbox" checked={newBook.isFeatured} onChange={e => setNewBook({...newBook, isFeatured: e.target.checked})} />Featured List ထဲထည့်မည်</div>
+              <button type="submit" className="w-full py-5 rounded-2xl text-white font-black shadow-xl active:scale-95 transition-all" style={{ backgroundColor: colors.primary }}>သိမ်းဆည်းမည်</button>
+              <button type="button" onClick={() => setIsModalOpen(false)} className="w-full py-2 text-slate-300 text-xs font-black">CANCEL</button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Request Modal */}
+      {isRequestModalOpen && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white w-full max-sm:max-w-full max-w-md rounded-[50px] shadow-2xl p-12 animate-in zoom-in">
+            <h2 className="text-xl font-black mb-8 text-center text-slate-800">စာအုပ်တောင်းဆိုရန်</h2>
+            <form onSubmit={handleAddRequest} className="space-y-4">
+              <div className="space-y-1">
+                <label className="text-[10px] font-black text-slate-400 uppercase ml-2">စာအုပ်အမည်</label>
+                <input required placeholder="စာအုပ်အမည်ကို ရိုက်ထည့်ပါ" className="w-full px-7 py-5 rounded-3xl bg-slate-50 font-bold text-sm outline-none focus:ring-2 border-none shadow-inner" style={{ ringColor: colors.primary }} value={newRequest.title} onChange={e => setNewRequest({...newRequest, title: e.target.value})} />
+              </div>
+              <div className="space-y-1">
+                <label className="text-[10px] font-black text-slate-400 uppercase ml-2">စာရေးဆရာအမည်</label>
+                <input required placeholder="စာရေးဆရာအမည်ကို ရိုက်ထည့်ပါ" className="w-full px-7 py-5 rounded-3xl bg-slate-50 font-bold text-sm outline-none focus:ring-2 border-none shadow-inner" style={{ ringColor: colors.primary }} value={newRequest.author} onChange={e => setNewRequest({...newRequest, author: e.target.value})} />
+              </div>
+              <div className="space-y-1">
+                <label className="text-[10px] font-black text-slate-400 uppercase ml-2">သင့်အမည် (တောင်းဆိုသူ)</label>
+                <input required placeholder="သင့်အမည်ကို ရိုက်ထည့်ပါ" className="w-full px-7 py-5 rounded-3xl bg-slate-50 font-bold text-sm outline-none focus:ring-2 border-none shadow-inner" style={{ ringColor: colors.primary }} value={newRequest.requester} onChange={e => setNewRequest({...newRequest, requester: e.target.value})} />
+              </div>
+              <button type="submit" className="w-full py-5 rounded-3xl text-white font-black shadow-xl active:scale-95 transition-all mt-6" style={{ backgroundColor: colors.primary }}>တောင်းဆိုချက် ပေးပို့မည်</button>
+              <button type="button" onClick={() => setIsRequestModalOpen(false)} className="w-full py-2 text-slate-300 text-[10px] font-black uppercase mt-2">Close</button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Notification Toast */}
+      {showNotification && (
+        <div className="fixed bottom-10 left-1/2 -translate-x-1/2 bg-slate-800/90 backdrop-blur-md text-white px-10 py-4 rounded-full text-[10px] font-black uppercase tracking-widest shadow-2xl z-[70] animate-in fade-in slide-in-from-bottom-5">
+          {showNotification}
+        </div>
+      )}
+
+    </div>
+  );
+};
+
+export default App;
