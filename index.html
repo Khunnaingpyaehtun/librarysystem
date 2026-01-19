@@ -5,9 +5,13 @@ const App = () => {
   const STORAGE_KEY = "our_trees_library_final_v1";
   const REQUEST_STORAGE_KEY = "our_trees_library_requests_final";
 
-  // Logos Configuration
-  const SPLASH_LOGO_URL = "https://raw.githubusercontent.com/Khunnaingpyaehtun/librarysystem/main/signal-2026-01-17-81018_PM.PNG";
-  const HEADER_LOGO_URL = "https://raw.githubusercontent.com/Khunnaingpyaehtun/librarysystem/main/Our_Trees_Education_Foundation_rgb-02.JPG";
+  // Logos Configuration - သတိပြုရန်- Offline သုံးပါက ပုံဖိုင်များကို စက်ထဲတွင် ထည့်ထားရပါမည်
+  const SPLASH_LOGO_FILENAME = "signal-2026-01-17-81018_PM.PNG";
+  const HEADER_LOGO_FILENAME = "Our_Trees_Education_Foundation_rgb-02.JPG";
+
+  // Online Backup URLs (အင်တာနက်ရှိလျှင် သုံးရန်)
+  const SPLASH_LOGO_URL = `https://raw.githubusercontent.com/Khunnaingpyaehtun/librarysystem/main/${SPLASH_LOGO_FILENAME}`;
+  const HEADER_LOGO_URL = `https://raw.githubusercontent.com/Khunnaingpyaehtun/librarysystem/main/${HEADER_LOGO_FILENAME}`;
 
   const colors = {
     primary: "#DB8C29",
@@ -61,6 +65,10 @@ const App = () => {
   const [newBook, setNewBook] = useState({ title: "", author: "", ddc: "000", isFeatured: false, year: "", coverUrl: "", pdfUrl: "" });
   const [newRequest, setNewRequest] = useState({ title: "", author: "", requester: "" });
   const [showNotification, setShowNotification] = useState(null);
+
+  // Logo Error Handling
+  const [headerLogoError, setHeaderLogoError] = useState(false);
+  const [splashLogoError, setSplashLogoError] = useState(false);
 
   useEffect(() => {
     const splashTimer = setTimeout(() => {
@@ -134,7 +142,6 @@ const App = () => {
     notify("စာအုပ်တောင်းဆိုမှုကို လက်ခံရရှိပါပြီ");
   };
 
-  // Function to Export Data as JSON for GitHub Backup
   const exportData = () => {
     const data = {
       books,
@@ -204,13 +211,26 @@ const App = () => {
     return (
       <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-white transition-all duration-1000 overflow-hidden">
         <div className="relative animate-in zoom-in fade-in duration-700 ease-out mb-10">
-           <img 
-            src={SPLASH_LOGO_URL} 
-            alt="Intro Logo" 
-            className="w-72 h-72 object-contain animate-pulse-slow" 
-            style={{ filter: "drop-shadow(0 15px 30px rgba(219, 140, 41, 0.25))" }}
-            onError={(e) => { e.target.src = "https://lucide.dev/api/icons/book"; }}
-           />
+           {splashLogoError ? (
+             <div className="w-64 h-64 bg-slate-50 rounded-full flex items-center justify-center text-[#DB8C29]">
+               <Book size={80} />
+             </div>
+           ) : (
+             <img 
+              src={SPLASH_LOGO_FILENAME} 
+              alt="Intro Logo" 
+              className="w-72 h-72 object-contain animate-pulse-slow" 
+              style={{ filter: "drop-shadow(0 15px 30px rgba(219, 140, 41, 0.25))" }}
+              onError={(e) => { 
+                // Fallback to Online GitHub URL if local fails
+                if (e.target.src.includes(SPLASH_LOGO_FILENAME) && !e.target.src.includes("raw.githubusercontent.com")) {
+                  e.target.src = SPLASH_LOGO_URL;
+                } else {
+                  setSplashLogoError(true); 
+                }
+              }}
+             />
+           )}
         </div>
         <h1 className="text-6xl font-black italic text-[#DB8C29] tracking-tighter mb-4 animate-in slide-in-from-bottom-5 duration-1000 delay-300">Our Trees</h1>
         <div className="flex items-center gap-3 text-slate-300 font-bold text-sm uppercase tracking-[0.4em] opacity-80 mt-2">
@@ -273,8 +293,25 @@ const App = () => {
       <header className="sticky top-0 z-40 shadow-md" style={{ backgroundColor: colors.primary }}>
         <div className="max-w-6xl mx-auto px-4 h-24 flex items-center justify-between text-white">
           <div onClick={() => setActiveTab("home")} className="flex items-center gap-5 cursor-pointer group">
+            {/* Header Logo Container */}
             <div className="bg-white/10 p-1.5 rounded-2xl overflow-hidden flex items-center justify-center w-20 h-20 group-hover:bg-white/20 transition-all duration-300">
-               <img src={HEADER_LOGO_URL} alt="Header Logo" className="w-full h-full object-contain filter drop-shadow-lg" onError={(e) => { e.target.src = "https://lucide.dev/api/icons/book"; }} />
+               {headerLogoError ? (
+                 <Book size={32} className="text-white opacity-80" />
+               ) : (
+                 <img 
+                  src={HEADER_LOGO_FILENAME} 
+                  alt="Header Logo" 
+                  className="w-full h-full object-contain filter drop-shadow-lg" 
+                  onError={(e) => { 
+                    // Fallback to Online GitHub URL if local fails
+                    if (e.target.src.includes(HEADER_LOGO_FILENAME) && !e.target.src.includes("raw.githubusercontent.com")) {
+                      e.target.src = HEADER_LOGO_URL;
+                    } else {
+                      setHeaderLogoError(true); 
+                    }
+                  }} 
+                 />
+               )}
             </div>
             <h1 className="text-3xl font-black tracking-tight italic">Our Trees</h1>
           </div>
